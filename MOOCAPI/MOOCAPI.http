@@ -1,0 +1,6 @@
+@MOOCAPI_HostAddress = http://localhost:5069
+
+GET {{MOOCAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
