@@ -1,0 +1,64 @@
+﻿@using MOOCSite.Models
+@model User
+
+@{
+    ViewData["Title"] = "Личный кабинет";
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4>Профиль пользователя</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <i class="bi bi-person-circle" style="font-size: 5rem;"></i>
+                    </div>
+                    <h5 class="card-title">@Model.FirstName @Model.LastName</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>Логин:</strong> @Model.Login</li>
+                        <li class="list-group-item"><strong>Email:</strong> @Model.Email</li>
+                        <li class="list-group-item"><strong>Телефон:</strong> @Model.PhoneNumber</li>
+                        <li class="list-group-item"><strong>Дата регистрации:</strong> 
+                            @Model.RegistrationDate.ToString("dd.MM.yyyy")</li>
+                    </ul>
+                </div>
+                <div class="card-footer">
+                    <form asp-action="Logout" method="post">
+                        <button type="submit" class="btn btn-danger">Выйти</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4>Мои курсы</h4>
+                </div>
+                <div class="card-body">
+                    @if (Model.Courses.Any())
+                    {
+                        <div class="list-group">
+                            @foreach (var course in Model.Courses)
+                            {
+                                <a href="#" class="list-group-item list-group-item-action">
+                                    @course.Title
+                                </a>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p>Вы пока не записаны ни на один курс.</p>
+                        <a href="@Url.Action("Index", "Courses")" class="btn btn-primary">
+                            Посмотреть доступные курсы
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
