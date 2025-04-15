@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Net.Http.Headers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +23,21 @@ builder.Services.AddHttpClient("MOOCApi", client =>
     ServerCertificateCustomValidationCallback = builder.Environment.IsDevelopment()
         ? (_, _, _, _) => true
         : null
+});
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireAuthenticated", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+    });
 });
 
 var app = builder.Build();

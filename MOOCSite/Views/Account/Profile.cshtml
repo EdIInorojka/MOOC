@@ -2,61 +2,43 @@
 @model User
 
 @{
-    ViewData["Title"] = "Личный кабинет";
+    ViewData["Title"] = "Профиль пользователя";
 }
 
-<div class="container mt-5">
+<div class="container mt-4">
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-8 offset-md-2">
             <div class="card">
                 <div class="card-header bg-primary text-white">
-                    <h4>Профиль пользователя</h4>
+                    <h3 class="card-title">Профиль пользователя</h3>
                 </div>
                 <div class="card-body">
-                    <div class="text-center mb-3">
-                        <i class="bi bi-person-circle" style="font-size: 5rem;"></i>
+                    <dl class="row">
+                        <dt class="col-sm-4">Логин:</dt>
+                        <dd class="col-sm-8">@Model.Login</dd>
+
+                        <dt class="col-sm-4">Email:</dt>
+                        <dd class="col-sm-8">@Model.Email</dd>
+
+                        <dt class="col-sm-4">Имя:</dt>
+                        <dd class="col-sm-8">@Model.FirstName</dd>
+
+                        <dt class="col-sm-4">Фамилия:</dt>
+                        <dd class="col-sm-8">@Model.LastName</dd>
+
+                        <dt class="col-sm-4">Телефон:</dt>
+                        <dd class="col-sm-8">@Model.PhoneNumber</dd>
+
+                        <dt class="col-sm-4">Дата регистрации:</dt>
+                        <dd class="col-sm-8">@Model.RegistrationDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</dd>
+
+                        <dt class="col-sm-4">Статус:</dt>
+                        <dd class="col-sm-8">@(Model.IsActive ? "Активен" : "Неактивен")</dd>
+                    </dl>
+
+                    <div class="mt-4">
+                        <a asp-action="EditProfile" class="btn btn-primary">Редактировать профиль</a>
                     </div>
-                    <h5 class="card-title">@Model.FirstName @Model.LastName</h5>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><strong>Логин:</strong> @Model.Login</li>
-                        <li class="list-group-item"><strong>Email:</strong> @Model.Email</li>
-                        <li class="list-group-item"><strong>Телефон:</strong> @Model.PhoneNumber</li>
-                        <li class="list-group-item"><strong>Дата регистрации:</strong> 
-                            @Model.RegistrationDate.ToString("dd.MM.yyyy")</li>
-                    </ul>
-                </div>
-                <div class="card-footer">
-                    <form asp-action="Logout" method="post">
-                        <button type="submit" class="btn btn-danger">Выйти</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h4>Мои курсы</h4>
-                </div>
-                <div class="card-body">
-                    @if (Model.Courses.Any())
-                    {
-                        <div class="list-group">
-                            @foreach (var course in Model.Courses)
-                            {
-                                <a href="#" class="list-group-item list-group-item-action">
-                                    @course.Title
-                                </a>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <p>Вы пока не записаны ни на один курс.</p>
-                        <a href="@Url.Action("Index", "Courses")" class="btn btn-primary">
-                            Посмотреть доступные курсы
-                        </a>
-                    }
                 </div>
             </div>
         </div>
