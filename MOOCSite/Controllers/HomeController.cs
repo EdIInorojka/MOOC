@@ -16,36 +16,7 @@ namespace MOOCSite.Controllers
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<IActionResult> Index()
-        {
-            var client = _httpClientFactory.CreateClient("MOOCApi");
-            var response = await client.GetAsync("api/Courses");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var courses = await response.Content.ReadFromJsonAsync<List<Course>>();
-                var viewModels = new List<CourseWithEnrollmentViewModel>();
-
-                if (User.Identity.IsAuthenticated)
-                {
-                    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                    foreach (var course in courses)
-                    {
-                        var checkResponse = await client.GetAsync($"api/Users/{userId}/courses/{course.Id}/isEnrolled");
-                        var isEnrolled = checkResponse.IsSuccessStatusCode && await checkResponse.Content.ReadFromJsonAsync<bool>();
-                        viewModels.Add(new CourseWithEnrollmentViewModel { Course = course, IsEnrolled = isEnrolled });
-                    }
-                }
-                else
-                {
-                    viewModels = courses.Select(c => new CourseWithEnrollmentViewModel { Course = c }).ToList();
-                }
-
-                return View(viewModels);
-            }
-
-            return View(new List<CourseWithEnrollmentViewModel>());
-        }
+        
 
         [Authorize]
         public async Task<IActionResult> MyCourses()
@@ -134,6 +105,70 @@ namespace MOOCSite.Controllers
             }
 
             return RedirectToAction("MyCourses");
+        }
+
+        public async Task<IActionResult> Index(
+            string search = "",
+            string sortBy = "title",
+            string sortOrder = "asc",
+            bool? isSelfPassed = null,
+            bool? certificated = null,
+            string language = null,
+            int? minPrice = null,
+            int? maxPrice = null,
+            float? minRating = null)
+        {
+            var client = _httpClientFactory.CreateClient("MOOCApi");
+
+            // Строим URL с параметрами
+            var url = $"api/Courses/Filter?search={search}&sortBy={sortBy}&sortOrder={sortOrder}";
+
+            if (isSelfPassed.HasValue) url += $"&isSelfPassed={isSelfPassed}";
+            if (certificated.HasValue) url += $"&certificated={certificated}";
+            if (!string.IsNullOrEmpty(language)) url += $"&language={language}";
+            if (minPrice.HasValue) url += $"&minPrice={minPrice}";
+            if (maxPrice.HasValue) url += $"&maxPrice={maxPrice}";
+            if (minRating.HasValue) url += $"&minRating={minRating}";
+
+            var response = await client.GetAsync(url);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var courses = await response.Content.ReadFromJsonAsync<List<Course>>();
+                var viewModels = new List<CourseWithEnrollmentViewModel>();
+
+                if (User.Identity.IsAuthenticated)
+                {
+                    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    foreach (var course in courses)
+                    {
+                        var checkResponse = await client.GetAsync($"api/Users/{userId}/courses/{course.Id}/isEnrolled");
+                        var isEnrolled = checkResponse.IsSuccessStatusCode && await checkResponse.Content.ReadFromJsonAsync<bool>();
+                        viewModels.Add(new CourseWithEnrollmentViewModel { Course = course, IsEnrolled = isEnrolled });
+                    }
+                }
+                else
+                {
+                    viewModels = courses.Select(c => new CourseWithEnrollmentViewModel { Course = c }).ToList();
+                }
+
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortOrder = sortOrder;
+                ViewBag.Search = search;
+                ViewBag.FilterParams = new
+                {
+                    IsSelfPassed = isSelfPassed,
+                    Certificated = certificated,
+                    Language = language,
+                    MinPrice = minPrice,
+                    MaxPrice = maxPrice,
+                    MinRating = minRating
+                };
+
+                return View(viewModels);
+            }
+
+            return View(new List<CourseWithEnrollmentViewModel>());
         }
     }
 }

@@ -4,84 +4,244 @@
 
 @{
     ViewData["Title"] = "Все курсы";
+    var sortOrder = Context.Request.Query["sortOrder"] == "desc" ? "asc" : "desc";
+    var currentSort = Context.Request.Query["sortBy"];
+    var searchQuery = Context.Request.Query["search"];
+    var languageFilter = Context.Request.Query["language"];
+    var certificatedFilter = Context.Request.Query["certificated"];
+    var isSelfPassedFilter = Context.Request.Query["isSelfPassed"];
+    var minPriceFilter = Context.Request.Query["minPrice"];
+    var maxPriceFilter = Context.Request.Query["maxPrice"];
+    var minRatingFilter = Context.Request.Query["minRating"];
 }
 
 <div class="container mt-4">
     <h1 class="mb-4">Доступные курсы</h1>
 
-    <div class="row">
-        @foreach (var item in Model)
-        {
-            <div class="col-md-6 mb-4">
-                <div class="card h-100 shadow-sm rounded-3">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div class="flex-grow-1">
-                                <h3 class="card-title">
-                                    <a asp-controller="Course" asp-action="Details" asp-route-id="@item.Course.Id"
-                                       class="text-decoration-none text-dark">
-                                        @item.Course.Title
-                                    </a>
-                                </h3>
-                                <p class="card-text text-muted">
-                                    @(item.Course.Description?.Length > 100 ?
-                                        item.Course.Description.Substring(0, 100) + "..." : item.Course.Description)
-                                </p>
-                            </div>
-                            <div class="text-end ms-3">
-                                <div class="text-primary fw-bold">
-                                    @item.Course.StartDate.ToString("dd.MM.yyyy") - @item.Course.EndDate.ToString("dd.MM.yyyy")
-                                </div>
-                                <div class="badge bg-info text-dark mt-2">
-                                    @item.Course.Language
-                                </div>
+    <!-- Фильтры и сортировка -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <!-- Поиск -->
+                <div class="col-md-4">
+                    <input type="text" name="search" class="form-control" placeholder="Поиск по названию" value="@searchQuery">
+                </div>
+
+                <!-- Фильтр по языку -->
+                <div class="col-md-3">
+                    <select name="language" class="form-select">
+                        <option value="">Все языки</option>
+                        @foreach (var lang in Model.Select(c => c.Course.Language).Where(l => !string.IsNullOrEmpty(l)).Distinct())
+                        {
+                            <option value="@lang" selected="@(lang == languageFilter)">@lang</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Фильтр по сертификату -->
+                <div class="col-md-3">
+                    <select name="certificated" class="form-select">
+                        <option value="">Все курсы</option>
+                        <option value="true" selected="@(certificatedFilter == "true")">С сертификатом</option>
+                        <option value="false" selected="@(certificatedFilter == "false")">Без сертификата</option>
+                    </select>
+                </div>
+
+                <!-- Кнопки сортировки -->
+                <div class="col-md-2">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="sortDropdown" data-bs-toggle="dropdown">
+                            <i class="bi bi-sort-down"></i> Сортировка
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" asp-action="Index"
+                                   asp-route-sortBy="title"
+                                   asp-route-sortOrder="@(currentSort == "title" ? sortOrder : "asc")"
+                                   asp-route-search="@searchQuery"
+                                   asp-route-language="@languageFilter"
+                                   asp-route-certificated="@certificatedFilter"
+                                   asp-route-isSelfPassed="@isSelfPassedFilter"
+                                   asp-route-minPrice="@minPriceFilter"
+                                   asp-route-maxPrice="@maxPriceFilter"
+                                   asp-route-minRating="@minRatingFilter">
+                                    По названию
+                                    @if (currentSort == "title")
+                                    {
+                                        <i class="bi bi-chevron-@(Context.Request.Query["sortOrder"] == "asc" ? "up" : "down") float-end"></i>
+                                    }
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-action="Index"
+                                   asp-route-sortBy="price"
+                                   asp-route-sortOrder="@(currentSort == "price" ? sortOrder : "asc")"
+                                   asp-route-search="@searchQuery"
+                                   asp-route-language="@languageFilter"
+                                   asp-route-certificated="@certificatedFilter"
+                                   asp-route-isSelfPassed="@isSelfPassedFilter"
+                                   asp-route-minPrice="@minPriceFilter"
+                                   asp-route-maxPrice="@maxPriceFilter"
+                                   asp-route-minRating="@minRatingFilter">
+                                    По цене
+                                    @if (currentSort == "price")
+                                    {
+                                        <i class="bi bi-chevron-@(Context.Request.Query["sortOrder"] == "asc" ? "up" : "down") float-end"></i>
+                                    }
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-action="Index"
+                                   asp-route-sortBy="reviews"
+                                   asp-route-sortOrder="@(currentSort == "reviews" ? sortOrder : "asc")"
+                                   asp-route-search="@searchQuery"
+                                   asp-route-language="@languageFilter"
+                                   asp-route-certificated="@certificatedFilter"
+                                   asp-route-isSelfPassed="@isSelfPassedFilter"
+                                   asp-route-minPrice="@minPriceFilter"
+                                   asp-route-maxPrice="@maxPriceFilter"
+                                   asp-route-minRating="@minRatingFilter">
+                                    По рейтингу
+                                    @if (currentSort == "reviews")
+                                    {
+                                        <i class="bi bi-chevron-@(Context.Request.Query["sortOrder"] == "asc" ? "up" : "down") float-end"></i>
+                                    }
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Дополнительные фильтры -->
+                <div class="col-12 mt-3">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="isSelfPassed" id="isSelfPassed" value="true"
+                                @(isSelfPassedFilter == "true" ? "checked" : "")>
+                                <label class="form-check-label" for="isSelfPassed">Самостоятельное прохождение</label>
                             </div>
                         </div>
-                    </div>
-                    <div class="card-footer bg-transparent border-top-0">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <span class="fw-bold">@item.Course.Price.ToString("C")</span>
-                                @if (item.Course.Certificated)
-                                {
-                                    <span class="badge bg-success ms-2">Сертификат</span>
-                                }
-                                @if (item.IsEnrolled)
-                                {
-                                    <span class="badge bg-primary ms-2">Ваш курс</span>
-                                }
-                            </div>
-
-                            @if (User.Identity.IsAuthenticated)
-                            {
-                                if (item.IsEnrolled)
-                                {
-                                    <button class="btn btn-success" disabled>
-                                        <i class="bi bi-check-circle"></i> Вы записаны
-                                    </button>
-                                }
-                                else
-                                {
-                                    <form asp-controller="Home" asp-action="Enroll" method="post">
-                                        <input type="hidden" name="courseId" value="@item.Course.Id" />
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="bi bi-plus-circle"></i> Записаться
-                                        </button>
-                                    </form>
-                                }
-                            }
-                            else
-                            {
-                                <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary">
-                                    Войдите, чтобы записаться
-                                </a>
-                            }
+                        <div class="col-md-3">
+                            <input type="number" name="minPrice" class="form-control" placeholder="Цена от" value="@minPriceFilter">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="number" name="maxPrice" class="form-control" placeholder="Цена до" value="@maxPriceFilter">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="number" step="0.1" min="0" max="5" name="minRating" class="form-control" placeholder="Рейтинг от" value="@minRatingFilter">
                         </div>
                     </div>
                 </div>
-            </div>
-        }
+
+                <!-- Кнопки действий -->
+                <div class="col-12 mt-3">
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-funnel"></i> Применить фильтры
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Сбросить
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
+
+    <!-- Список курсов -->
+    @if (Model.Count == 0)
+    {
+        <div class="alert alert-info">
+            По вашему запросу ничего не найдено. <a asp-action="Index">Сбросить фильтры</a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var item in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm rounded-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div class="flex-grow-1">
+                                    <h3 class="card-title">
+                                        <a asp-controller="Course" asp-action="Details" asp-route-id="@item.Course.Id"
+                                           class="text-decoration-none text-dark">
+                                            @item.Course.Title
+                                        </a>
+                                    </h3>
+                                    <p class="card-text text-muted">
+                                        @(item.Course.Description?.Length > 100 ?
+                                            item.Course.Description.Substring(0, 100) + "..." : item.Course.Description)
+                                    </p>
+                                </div>
+                                <div class="text-end ms-3">
+                                    <div class="text-primary fw-bold">
+                                        @item.Course.StartDate.ToString("dd.MM.yyyy") - @item.Course.EndDate.ToString("dd.MM.yyyy")
+                                    </div>
+                                    <div class="badge bg-info text-dark mt-2">
+                                        @item.Course.Language
+                                    </div>
+                                    <div class="mt-2">
+                                        <span class="badge @(item.Course.IsSelfPassed ? "bg-success" : "bg-warning text-dark")">
+                                            @(item.Course.IsSelfPassed ? "Самостоятельное" : "С преподавателем")
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="fw-bold">@item.Course.Price.ToString("C")</span>
+                                    @if (item.Course.Certificated)
+                                    {
+                                        <span class="badge bg-success ms-2">
+                                            @(item.Course.IsCertificatePaid ? "Сертификат (платный)" : "Сертификат")
+                                        </span>
+                                    }
+                                    <span class="badge bg-secondary ms-2">
+                                        <i class="bi bi-star-fill"></i> @item.Course.Reviews.ToString("0.0")
+                                    </span>
+                                    @if (item.IsEnrolled)
+                                    {
+                                        <span class="badge bg-primary ms-2">Ваш курс</span>
+                                    }
+                                </div>
+
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    if (item.IsEnrolled)
+                                    {
+                                        <button class="btn btn-success" disabled>
+                                            <i class="bi bi-check-circle"></i> Вы записаны
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <form asp-controller="Home" asp-action="Enroll" method="post">
+                                            <input type="hidden" name="courseId" value="@item.Course.Id" />
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bi bi-plus-circle"></i> Записаться
+                                            </button>
+                                        </form>
+                                    }
+                                }
+                                else
+                                {
+                                    <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary">
+                                        Войдите, чтобы записаться
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
 </div>
 
 <style>
@@ -102,9 +262,32 @@
         opacity: 1;
         cursor: not-allowed;
     }
+
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+    }
+
+    .form-check-label {
+        cursor: pointer;
+    }
+
+    .badge {
+        font-weight: 500;
+    }
 </style>
 
 @section Scripts {
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <script>
+        // Инициализация dropdown-ов
+        document.addEventListener('DOMContentLoaded', function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+        });
+    </script>
 }

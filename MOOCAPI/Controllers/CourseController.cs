@@ -134,49 +134,83 @@ namespace MOOCAPI.Controllers
             return NoContent();
         }
 
-        // GET: api/Courses/Filter
-        [HttpGet("Filter")]
-        public async Task<ActionResult<IEnumerable<Course>>> FilterCourses(
-            bool? certificated = null,
-            bool? isSelfPassed = null,
-            string? language = null,
-            int? minPrice = null,
-            int? maxPrice = null,
-            float? minRating = null,
-            string sortBy = "title",
-            string sortOrder = "asc")
-        {
-            IQueryable<Course> query = _context.Courses;
-
-            if (certificated.HasValue)
-                query = query.Where(c => c.Certificated == certificated);
-
-            if (isSelfPassed.HasValue)
-                query = query.Where(c => c.IsSelfPassed == isSelfPassed);
-
-            if (!string.IsNullOrEmpty(language))
-                query = query.Where(c => c.Language == language);
-
-            if (minPrice.HasValue)
-                query = query.Where(c => c.Price >= minPrice);
-
-            if (maxPrice.HasValue)
-                query = query.Where(c => c.Price <= maxPrice);
-
-            if (minRating.HasValue)
-                query = query.Where(c => c.Reviews >= minRating);
-
-            sortBy = _sortableFields.Contains(sortBy.ToLower()) ? sortBy : "title";
-            sortOrder = sortOrder.ToLower() == "desc" ? "desc" : "asc";
-
-            query = query.OrderBy($"{sortBy} {sortOrder}");
-
-            return await query.ToListAsync();
-        }
-
         private bool CourseExists(int id)
         {
             return _context.Courses.Any(e => e.Id == id);
+        }
+
+        [HttpGet("Filter")]
+        public async Task<ActionResult<IEnumerable<Course>>> FilterCourses(
+            string search = "",
+            string sortBy = "title",
+            string sortOrder = "asc",
+            bool? isSelfPassed = null,
+            bool? certificated = null,
+            string language = null,
+            int? minPrice = null,
+            int? maxPrice = null,
+            float? minRating = null)
+        {
+            IQueryable<Course> query = _context.Courses;
+
+            // Поиск
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(c => c.Title.Contains(search));
+            }
+
+            // Фильтрация
+            if (isSelfPassed.HasValue)
+            {
+                query = query.Where(c => c.IsSelfPassed == isSelfPassed);
+            }
+
+            if (certificated.HasValue)
+            {
+                query = query.Where(c => c.Certificated == certificated);
+            }
+
+            if (!string.IsNullOrEmpty(language))
+            {
+                query = query.Where(c => c.Language == language);
+            }
+
+            if (minPrice.HasValue)
+            {
+                query = query.Where(c => c.Price >= minPrice);
+            }
+
+            if (maxPrice.HasValue)
+            {
+                query = query.Where(c => c.Price <= maxPrice);
+            }
+
+            if (minRating.HasValue)
+            {
+                query = query.Where(c => c.Reviews >= minRating);
+            }
+
+            // Сортировка
+            switch (sortBy.ToLower())
+            {
+                case "title":
+                    query = sortOrder == "asc" ? query.OrderBy(c => c.Title) : query.OrderByDescending(c => c.Title);
+                    break;
+                case "startdate":
+                    query = sortOrder == "asc" ? query.OrderBy(c => c.StartDate) : query.OrderByDescending(c => c.StartDate);
+                    break;
+                case "price":
+                    query = sortOrder == "asc" ? query.OrderBy(c => c.Price) : query.OrderByDescending(c => c.Price);
+                    break;
+                case "reviews":
+                    query = sortOrder == "asc" ? query.OrderBy(c => c.Reviews) : query.OrderByDescending(c => c.Reviews);
+                    break;
+                default:
+                    query = query.OrderBy(c => c.Title);
+                    break;
+            }
+
+            return await query.ToListAsync();
         }
     }
 }
