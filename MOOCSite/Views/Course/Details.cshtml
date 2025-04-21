@@ -48,12 +48,22 @@
 
                             @if (User.Identity.IsAuthenticated)
                             {
-                                <form asp-controller="Home" asp-action="Enroll" method="post" class="mt-3">
-                                    <input type="hidden" name="courseId" value="@Model.Id" />
-                                    <button type="submit" class="btn btn-primary w-100">
-                                        Записаться на курс
-                                    </button>
-                                </form>
+                                if (ViewBag.IsEnrolled == true)
+                                {
+                                    <button class="btn btn-success w-100" disabled>Вы записаны</button>
+                                    <a asp-controller="Home" asp-action="MyCourses" class="btn btn-outline-secondary w-100 mt-2">
+                                        Перейти к моим курсам
+                                    </a>
+                                }
+                                else
+                                {
+                                    <form asp-controller="Home" asp-action="Enroll" method="post" class="mt-3">
+                                        <input type="hidden" name="courseId" value="@Model.Id" />
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            Записаться на курс
+                                        </button>
+                                    </form>
+                                }
                             }
                         </div>
                     </div>

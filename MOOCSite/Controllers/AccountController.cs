@@ -196,4 +196,6 @@ public class AccountController : Controller
         ModelState.AddModelError("", "Ошибка при смене пароля");
         return View(model);
     }
+
+
 }

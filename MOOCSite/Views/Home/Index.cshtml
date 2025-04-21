@@ -1,5 +1,6 @@
 ﻿@using MOOCSite.Models
-@model List<Course>
+@using MOOCSite.ViewModels
+@model List<CourseWithEnrollmentViewModel>
 
 @{
     ViewData["Title"] = "Все курсы";
@@ -7,9 +8,9 @@
 
 <div class="container mt-4">
     <h1 class="mb-4">Доступные курсы</h1>
-    
+
     <div class="row">
-        @foreach (var course in Model)
+        @foreach (var item in Model)
         {
             <div class="col-md-6 mb-4">
                 <div class="card h-100 shadow-sm rounded-3">
@@ -17,20 +18,22 @@
                         <div class="d-flex justify-content-between">
                             <div class="flex-grow-1">
                                 <h3 class="card-title">
-                                    <a asp-controller="Course" asp-action="Details" asp-route-id="@course.Id" 
+                                    <a asp-controller="Course" asp-action="Details" asp-route-id="@item.Course.Id"
                                        class="text-decoration-none text-dark">
-                                        @course.Title
+                                        @item.Course.Title
                                     </a>
                                 </h3>
-                                <p class="card-text text-muted">@(course.Description?.Length > 100 ? 
-                                    course.Description.Substring(0, 100) + "..." : course.Description)</p>
+                                <p class="card-text text-muted">
+                                    @(item.Course.Description?.Length > 100 ?
+                                        item.Course.Description.Substring(0, 100) + "..." : item.Course.Description)
+                                </p>
                             </div>
                             <div class="text-end ms-3">
                                 <div class="text-primary fw-bold">
-                                    @course.StartDate.ToString("dd.MM.yyyy") - @course.EndDate.ToString("dd.MM.yyyy")
+                                    @item.Course.StartDate.ToString("dd.MM.yyyy") - @item.Course.EndDate.ToString("dd.MM.yyyy")
                                 </div>
                                 <div class="badge bg-info text-dark mt-2">
-                                    @course.Language
+                                    @item.Course.Language
                                 </div>
                             </div>
                         </div>
@@ -38,21 +41,40 @@
                     <div class="card-footer bg-transparent border-top-0">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <span class="fw-bold">@course.Price.ToString("C")</span>
-                                @if (course.Certificated)
+                                <span class="fw-bold">@item.Course.Price.ToString("C")</span>
+                                @if (item.Course.Certificated)
                                 {
                                     <span class="badge bg-success ms-2">Сертификат</span>
                                 }
+                                @if (item.IsEnrolled)
+                                {
+                                    <span class="badge bg-primary ms-2">Ваш курс</span>
+                                }
                             </div>
-                            
+
                             @if (User.Identity.IsAuthenticated)
                             {
-                                <form asp-action="Enroll" method="post">
-                                    <input type="hidden" name="courseId" value="@course.Id" />
-                                    <button type="submit" class="btn btn-primary">
-                                        Записаться
+                                if (item.IsEnrolled)
+                                {
+                                    <button class="btn btn-success" disabled>
+                                        <i class="bi bi-check-circle"></i> Вы записаны
                                     </button>
-                                </form>
+                                }
+                                else
+                                {
+                                    <form asp-controller="Home" asp-action="Enroll" method="post">
+                                        <input type="hidden" name="courseId" value="@item.Course.Id" />
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-plus-circle"></i> Записаться
+                                        </button>
+                                    </form>
+                                }
+                            }
+                            else
+                            {
+                                <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary">
+                                    Войдите, чтобы записаться
+                                </a>
                             }
                         </div>
                     </div>
@@ -66,11 +88,23 @@
     .card {
         transition: transform 0.2s;
     }
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
     .rounded-3 {
         border-radius: 0.5rem !important;
     }
+
+    .btn-success[disabled] {
+        opacity: 1;
+        cursor: not-allowed;
+    }
 </style>
+
+@section Scripts {
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+}

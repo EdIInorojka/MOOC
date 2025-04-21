@@ -185,18 +185,103 @@ namespace MOOCAPI.Controllers
 
             if (user == null || course == null)
             {
-                return NotFound();
+                return NotFound("User or course not found");
             }
 
             if (user.Courses.Any(c => c.Id == courseId))
             {
-                return BadRequest("User already enrolled in this course");
+                return Conflict("User already enrolled in this course");
             }
 
             user.Courses.Add(course);
             await _context.SaveChangesAsync();
 
-            return Ok();
+            return CreatedAtAction(nameof(IsUserEnrolled), new { userId, courseId }, null);
+        }
+
+        [HttpGet("{userId}/courses/{courseId}/isEnrolled")]
+        public async Task<ActionResult<bool>> IsUserEnrolled(int userId, int courseId)
+        {
+            var user = await _context.Users
+                .Include(u => u.Courses)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null) return NotFound("User not found");
+
+            return Ok(user.Courses.Any(c => c.Id == courseId));
+        }
+
+        [HttpGet("{userId}/courses")]
+        public async Task<ActionResult<IEnumerable<Course>>> GetUserCourses(int userId)
+        {
+            var user = await _context.Users
+                .Include(u => u.Courses) // Важно: включаем связанные курсы
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null) return NotFound("User not found");
+
+            return Ok(user.Courses);
+        }
+
+        [HttpDelete("{userId}/courses/{courseId}")]
+        public async Task<IActionResult> RemoveCourseFromUser(int userId, int courseId)
+        {
+            var user = await _context.Users
+                .Include(u => u.Courses)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null) return NotFound("User not found");
+
+            var course = user.Courses.FirstOrDefault(c => c.Id == courseId);
+            if (course == null) return NotFound("Course not found in user's courses");
+
+            user.Courses.Remove(course);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpGet("courses/{courseId}")]
+        public async Task<ActionResult<IEnumerable<User>>> GetUsersByCourse(int courseId)
+        {
+            var course = await _context.Courses
+                .Include(c => c.Users)
+                .FirstOrDefaultAsync(c => c.Id == courseId);
+
+            if (course == null) return NotFound("Course not found");
+
+            return Ok(course.Users);
+        }
+
+        [HttpGet("{userId}/courses/count")]
+        public async Task<ActionResult<int>> GetUserCoursesCount(int userId)
+        {
+            var user = await _context.Users
+                .Include(u => u.Courses)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null) return NotFound("User not found");
+
+            return Ok(user.Courses.Count);
+        }
+
+        [HttpGet("{userId}/courses/{courseId}/canGetCertificate")]
+        public async Task<ActionResult<bool>> CanGetCertificate(int userId, int courseId)
+        {
+            var user = await _context.Users
+                .Include(u => u.Courses)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null) return NotFound("User not found");
+
+            var course = user.Courses.FirstOrDefault(c => c.Id == courseId);
+            if (course == null) return NotFound("User is not enrolled in this course");
+
+            // Логика проверки возможности получения сертификата
+            bool canGetCertificate = course.Certificated &&
+                                   (!course.IsCertificatePaid || /* проверка оплаты */ true);
+
+            return Ok(canGetCertificate);
         }
     }
 

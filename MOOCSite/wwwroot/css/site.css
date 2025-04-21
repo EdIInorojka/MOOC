@@ -46,3 +46,30 @@ body {
     background-color: #2ecc71;
     color: white;
 }
+
+.btn-success[disabled] {
+    opacity: 1;
+    cursor: not-allowed;
+}
+
+.my-courses-empty {
+    text-align: center;
+    padding: 2rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+}
+
+/* Стили для кнопки удаления */
+.btn-danger {
+    transition: all 0.2s;
+}
+
+    .btn-danger:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
+    }
+
+/* Иконки в кнопках */
+.btn i {
+    margin-right: 5px;
+}

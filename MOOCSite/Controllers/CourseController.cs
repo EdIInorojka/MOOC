@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MOOCSite.Models;
+using System.Security.Claims;
 
 namespace MOOCSite.Controllers
 {
@@ -20,6 +21,17 @@ namespace MOOCSite.Controllers
             if (response.IsSuccessStatusCode)
             {
                 var course = await response.Content.ReadFromJsonAsync<Course>();
+
+                if (User.Identity.IsAuthenticated)
+                {
+                    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    var checkResponse = await client.GetAsync($"api/Users/{userId}/courses/{id}/isEnrolled");
+                    if (checkResponse.IsSuccessStatusCode)
+                    {
+                        ViewBag.IsEnrolled = await checkResponse.Content.ReadFromJsonAsync<bool>();
+                    }
+                }
+
                 return View(course);
             }
 
