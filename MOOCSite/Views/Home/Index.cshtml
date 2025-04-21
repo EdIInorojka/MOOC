@@ -1,30 +1,76 @@
 ﻿@using MOOCSite.Models
-@model IEnumerable<User>
+@model List<Course>
 
 @{
-    ViewData["Title"] = "All Users";
+    ViewData["Title"] = "Все курсы";
 }
 
-<h2>All Reservations</h2>
-
-<table class="table table-sm table-striped table-bordered m-2">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Login</th>
-            <th>Password</th>
-            <th>Email</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var r in Model)
+<div class="container mt-4">
+    <h1 class="mb-4">Доступные курсы</h1>
+    
+    <div class="row">
+        @foreach (var course in Model)
         {
-                <tr>
-                    <td>@r.Id</td>
-                    <td>@r.Login</td>
-                    <td>@r.Password</td>
-                    <td>@r.Email</td>
-                </tr>
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 shadow-sm rounded-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div class="flex-grow-1">
+                                <h3 class="card-title">
+                                    <a asp-controller="Course" asp-action="Details" asp-route-id="@course.Id" 
+                                       class="text-decoration-none text-dark">
+                                        @course.Title
+                                    </a>
+                                </h3>
+                                <p class="card-text text-muted">@(course.Description?.Length > 100 ? 
+                                    course.Description.Substring(0, 100) + "..." : course.Description)</p>
+                            </div>
+                            <div class="text-end ms-3">
+                                <div class="text-primary fw-bold">
+                                    @course.StartDate.ToString("dd.MM.yyyy") - @course.EndDate.ToString("dd.MM.yyyy")
+                                </div>
+                                <div class="badge bg-info text-dark mt-2">
+                                    @course.Language
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-top-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold">@course.Price.ToString("C")</span>
+                                @if (course.Certificated)
+                                {
+                                    <span class="badge bg-success ms-2">Сертификат</span>
+                                }
+                            </div>
+                            
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <form asp-action="Enroll" method="post">
+                                    <input type="hidden" name="courseId" value="@course.Id" />
+                                    <button type="submit" class="btn btn-primary">
+                                        Записаться
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
         }
-    </tbody>
-</table>
+    </div>
+</div>
+
+<style>
+    .card {
+        transition: transform 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .rounded-3 {
+        border-radius: 0.5rem !important;
+    }
+</style>

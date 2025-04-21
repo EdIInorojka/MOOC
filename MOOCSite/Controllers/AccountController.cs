@@ -103,4 +103,97 @@ public class AccountController : Controller
         ModelState.AddModelError(string.Empty, error);
         return View(model);
     }
+
+
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> EditProfile()
+    {
+        var client = _httpClientFactory.CreateClient("MOOCApi");
+        var response = await client.GetAsync($"api/Users/{User.FindFirstValue(ClaimTypes.NameIdentifier)}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            var user = await response.Content.ReadFromJsonAsync<User>();
+            var model = new EditProfileViewModel
+            {
+                Id = user.Id,
+                Login = user.Login,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                PhoneNumber = user.PhoneNumber
+            };
+            return View(model);
+        }
+
+        return RedirectToAction("Profile");
+    }
+
+    [Authorize]
+    [HttpPost]
+    public async Task<IActionResult> EditProfile(EditProfileViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var client = _httpClientFactory.CreateClient("MOOCApi");
+        var response = await client.PutAsJsonAsync($"api/Users/{model.Id}", model);
+
+        if (response.IsSuccessStatusCode)
+        {
+            // Обновляем имя пользователя в куках, если изменился логин
+            if (User.Identity.Name != model.Login)
+            {
+                var identity = User.Identity as ClaimsIdentity;
+                var claim = identity.FindFirst(ClaimTypes.Name);
+                identity.RemoveClaim(claim);
+                identity.AddClaim(new Claim(ClaimTypes.Name, model.Login));
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+            }
+
+            TempData["Success"] = "Профиль успешно обновлен";
+            return RedirectToAction("Profile");
+        }
+
+        var error = await response.Content.ReadAsStringAsync();
+        ModelState.AddModelError(string.Empty, error);
+        return View(model);
+    }
+
+    [Authorize]
+    [HttpGet]
+    public IActionResult ChangePassword()
+    {
+        return View();
+    }
+
+    [Authorize]
+    [HttpPost]
+    public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var client = _httpClientFactory.CreateClient("MOOCApi");
+
+        var response = await client.PostAsJsonAsync($"api/Users/{userId}/password", new
+        {
+            model.CurrentPassword,
+            model.NewPassword
+        });
+
+        if (response.IsSuccessStatusCode)
+        {
+            TempData["Success"] = "Пароль успешно изменён";
+            return RedirectToAction("Profile");
+        }
+
+        ModelState.AddModelError("", "Ошибка при смене пароля");
+        return View(model);
+    }
 }

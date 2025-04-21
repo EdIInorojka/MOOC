@@ -20,3 +20,29 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+.course-card {
+    margin-bottom: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+    .course-card:hover {
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+.course-title {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+    .course-title:hover {
+        color: #3498db;
+        text-decoration: none;
+    }
+
+.badge-certificate {
+    background-color: #2ecc71;
+    color: white;
+}

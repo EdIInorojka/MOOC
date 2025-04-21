@@ -1,0 +1,64 @@
+﻿@using MOOCSite.Models
+@model Course
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="container mt-4">
+    <div class="card shadow rounded-3">
+        <div class="card-body">
+            <h1 class="card-title">@Model.Title</h1>
+
+            <div class="row mt-4">
+                <div class="col-md-8">
+                    <h4>Описание курса</h4>
+                    <p class="lead">@Model.Description</p>
+
+                    @if (!string.IsNullOrEmpty(Model.Link))
+                    {
+                        <a href="@Model.Link" class="btn btn-outline-primary" target="_blank">
+                            Официальная страница курса
+                        </a>
+                    }
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Детали курса</h5>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item">
+                                    <strong>Даты:</strong> @Model.StartDate.ToString("dd.MM.yyyy") - @Model.EndDate.ToString("dd.MM.yyyy")
+                                </li>
+                                <li class="list-group-item">
+                                    <strong>Язык:</strong> @Model.Language
+                                </li>
+                                <li class="list-group-item">
+                                    <strong>Цена:</strong> @Model.Price.ToString("C")
+                                </li>
+                                <li class="list-group-item">
+                                    <strong>Сертификат:</strong>
+                                    @(Model.Certificated ? "Да" + (Model.IsCertificatePaid ? " (платный)" : "") : "Нет")
+                                </li>
+                                <li class="list-group-item">
+                                    <strong>Рейтинг:</strong> @Model.Reviews.ToString("0.0")
+                                </li>
+                            </ul>
+
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <form asp-controller="Home" asp-action="Enroll" method="post" class="mt-3">
+                                    <input type="hidden" name="courseId" value="@Model.Id" />
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        Записаться на курс
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -152,6 +152,52 @@ namespace MOOCAPI.Controllers
         {
             return _context.Users.Any(e => e.Id == id);
         }
+
+        [HttpPost("{userId}/password")]
+        public IActionResult ChangePassword(int userId, [FromBody] PasswordChangeDto dto)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+            if (user == null) return NotFound();
+
+            if (user.Password != dto.CurrentPassword) // Простое сравнение без хеширования
+                return BadRequest("Неверный текущий пароль");
+
+            user.Password = dto.NewPassword; // Сохраняем как есть
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        public class PasswordChangeDto
+        {
+            public string CurrentPassword { get; set; }
+            public string NewPassword { get; set; }
+        }
+
+        [HttpPost("{userId}/courses/{courseId}")]
+        public async Task<IActionResult> AddCourseToUser(int userId, int courseId)
+        {
+            var user = await _context.Users
+                .Include(u => u.Courses)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            var course = await _context.Courses.FindAsync(courseId);
+
+            if (user == null || course == null)
+            {
+                return NotFound();
+            }
+
+            if (user.Courses.Any(c => c.Id == courseId))
+            {
+                return BadRequest("User already enrolled in this course");
+            }
+
+            user.Courses.Add(course);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
     }
 
     public class LoginModel
