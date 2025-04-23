@@ -4,6 +4,7 @@
 
 @{
     ViewData["Title"] = "Все курсы";
+    var disciplines = ViewBag.Disciplines as List<Discipline> ?? new List<Discipline>();
     var sortOrder = Context.Request.Query["sortOrder"] == "desc" ? "asc" : "desc";
     var currentSort = Context.Request.Query["sortBy"];
     var searchQuery = Context.Request.Query["search"];
@@ -47,6 +48,19 @@
                     </select>
                 </div>
 
+                <div class="col-md-3">
+                    <select name="disciplineId" class="form-select">
+                        <option value="">Все дисциплины</option>
+                        @foreach (var discipline in disciplines)
+                        {
+                            <option value="@discipline.Id"
+                                    selected="@(Context.Request.Query["disciplineId"].ToString() == discipline.Id.ToString())">
+                                @discipline.Title
+                            </option>
+                        }
+                    </select>
+                </div>
+
                 <!-- Кнопки сортировки -->
                 <div class="col-md-2">
                     <div class="dropdown">
@@ -64,7 +78,8 @@
                                    asp-route-isSelfPassed="@isSelfPassedFilter"
                                    asp-route-minPrice="@minPriceFilter"
                                    asp-route-maxPrice="@maxPriceFilter"
-                                   asp-route-minRating="@minRatingFilter">
+                                   asp-route-minRating="@minRatingFilter"
+                                   asp-route-disciplineId="@Context.Request.Query["disciplineId"]">
                                     По названию
                                     @if (currentSort == "title")
                                     {
@@ -82,7 +97,8 @@
                                    asp-route-isSelfPassed="@isSelfPassedFilter"
                                    asp-route-minPrice="@minPriceFilter"
                                    asp-route-maxPrice="@maxPriceFilter"
-                                   asp-route-minRating="@minRatingFilter">
+                                   asp-route-minRating="@minRatingFilter"
+                                   asp-route-disciplineId="@Context.Request.Query["disciplineId"]">
                                     По цене
                                     @if (currentSort == "price")
                                     {
@@ -100,7 +116,8 @@
                                    asp-route-isSelfPassed="@isSelfPassedFilter"
                                    asp-route-minPrice="@minPriceFilter"
                                    asp-route-maxPrice="@maxPriceFilter"
-                                   asp-route-minRating="@minRatingFilter">
+                                   asp-route-minRating="@minRatingFilter"
+                                   asp-route-disciplineId="@Context.Request.Query["disciplineId"]">
                                     По рейтингу
                                     @if (currentSort == "reviews")
                                     {
@@ -188,6 +205,15 @@
                                         <span class="badge @(item.Course.IsSelfPassed ? "bg-success" : "bg-warning text-dark")">
                                             @(item.Course.IsSelfPassed ? "Самостоятельное" : "С преподавателем")
                                         </span>
+                                    </div>
+
+                                    <div class="mt-2">
+                                        @foreach (var discipline in item.Course.Disciplines)
+                                        {
+                                            <span class="badge bg-light text-dark me-1">
+                                                @discipline.Title
+                                            </span>
+                                        }
                                     </div>
                                 </div>
                             </div>

@@ -108,17 +108,24 @@ namespace MOOCSite.Controllers
         }
 
         public async Task<IActionResult> Index(
-            string search = "",
-            string sortBy = "title",
-            string sortOrder = "asc",
-            bool? isSelfPassed = null,
-            bool? certificated = null,
-            string language = null,
-            int? minPrice = null,
-            int? maxPrice = null,
-            float? minRating = null)
+    string search = "",
+    string sortBy = "title",
+    string sortOrder = "asc",
+    bool? isSelfPassed = null,
+    bool? certificated = null,
+    string language = null,
+    int? minPrice = null,
+    int? maxPrice = null,
+    float? minRating = null,
+    int? disciplineId = null)
         {
             var client = _httpClientFactory.CreateClient("MOOCApi");
+
+            // Получаем список всех дисциплин
+            var disciplinesResponse = await client.GetAsync("api/Disciplines");
+            ViewBag.Disciplines = disciplinesResponse.IsSuccessStatusCode
+                ? await disciplinesResponse.Content.ReadFromJsonAsync<List<Discipline>>()
+                : new List<Discipline>();
 
             // Строим URL с параметрами
             var url = $"api/Courses/Filter?search={search}&sortBy={sortBy}&sortOrder={sortOrder}";
@@ -129,7 +136,9 @@ namespace MOOCSite.Controllers
             if (minPrice.HasValue) url += $"&minPrice={minPrice}";
             if (maxPrice.HasValue) url += $"&maxPrice={maxPrice}";
             if (minRating.HasValue) url += $"&minRating={minRating}";
+            if (disciplineId.HasValue) url += $"&disciplineId={disciplineId}";
 
+            // Получаем отфильтрованные курсы
             var response = await client.GetAsync(url);
 
             if (response.IsSuccessStatusCode)
@@ -137,32 +146,50 @@ namespace MOOCSite.Controllers
                 var courses = await response.Content.ReadFromJsonAsync<List<Course>>();
                 var viewModels = new List<CourseWithEnrollmentViewModel>();
 
-                if (User.Identity.IsAuthenticated)
+                // Для каждого курса загружаем дисциплины (если они не были загружены)
+                foreach (var course in courses)
                 {
-                    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                    foreach (var course in courses)
+                    if (course.Disciplines == null || !course.Disciplines.Any())
                     {
-                        var checkResponse = await client.GetAsync($"api/Users/{userId}/courses/{course.Id}/isEnrolled");
-                        var isEnrolled = checkResponse.IsSuccessStatusCode && await checkResponse.Content.ReadFromJsonAsync<bool>();
-                        viewModels.Add(new CourseWithEnrollmentViewModel { Course = course, IsEnrolled = isEnrolled });
+                        var disciplinesResponseForCourse = await client.GetAsync($"api/Courses/{course.Id}/disciplines");
+                        if (disciplinesResponseForCourse.IsSuccessStatusCode)
+                        {
+                            course.Disciplines = await disciplinesResponseForCourse.Content.ReadFromJsonAsync<List<Discipline>>();
+                        }
                     }
-                }
-                else
-                {
-                    viewModels = courses.Select(c => new CourseWithEnrollmentViewModel { Course = c }).ToList();
+
+                    // Проверяем запись пользователя на курс
+                    bool isEnrolled = false;
+                    if (User.Identity.IsAuthenticated)
+                    {
+                        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                        var checkResponse = await client.GetAsync($"api/Users/{userId}/courses/{course.Id}/isEnrolled");
+                        if (checkResponse.IsSuccessStatusCode)
+                        {
+                            isEnrolled = await checkResponse.Content.ReadFromJsonAsync<bool>();
+                        }
+                    }
+
+                    viewModels.Add(new CourseWithEnrollmentViewModel
+                    {
+                        Course = course,
+                        IsEnrolled = isEnrolled
+                    });
                 }
 
-                ViewBag.SortBy = sortBy;
-                ViewBag.SortOrder = sortOrder;
-                ViewBag.Search = search;
-                ViewBag.FilterParams = new
+                // Сохраняем параметры фильтрации
+                ViewBag.CurrentFilter = new
                 {
+                    Search = search,
+                    SortBy = sortBy,
+                    SortOrder = sortOrder,
                     IsSelfPassed = isSelfPassed,
                     Certificated = certificated,
                     Language = language,
                     MinPrice = minPrice,
                     MaxPrice = maxPrice,
-                    MinRating = minRating
+                    MinRating = minRating,
+                    DisciplineId = disciplineId
                 };
 
                 return View(viewModels);

@@ -19,5 +19,6 @@ namespace MOOCSite.Models
         public int Credits { get; set; }
         public float Reviews { get; set; }
         public virtual ICollection<User> Users { get; set; } = new List<User>();
+        public virtual ICollection<Discipline> Disciplines { get; set; } = new List<Discipline>();
     }
 }

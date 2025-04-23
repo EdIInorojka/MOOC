@@ -1,20 +1,17 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MOOCAPI.Models;
-using System.Collections.Generic;
 using System.Reflection.Emit;
 
 namespace MOOCAPI.Data
 {
     public class AppDbContext : DbContext
     {
-        // Основной конструктор для DI
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-
-        // Конструктор для инструментов EF Core
         protected AppDbContext() : base() { }
 
         public DbSet<User> Users { get; set; }
         public DbSet<Course> Courses { get; set; }
+        public DbSet<Discipline> Disciplines { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -32,31 +29,84 @@ namespace MOOCAPI.Data
                 entity.HasIndex(u => u.Login).IsUnique();
                 entity.HasIndex(u => u.Email).IsUnique();
 
-                entity.Property(u => u.Login).IsRequired().HasMaxLength(50);
-                entity.Property(u => u.Password).IsRequired().HasMaxLength(100);
-                entity.Property(u => u.Email).HasMaxLength(100);
-                entity.Property(u => u.FirstName).HasMaxLength(50);
-                entity.Property(u => u.LastName).HasMaxLength(50);
-                entity.Property(u => u.PhoneNumber).HasMaxLength(20);
-                entity.Property(u => u.RegistrationDate).HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(u => u.Login)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(u => u.Password)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(u => u.Email)
+                    .HasMaxLength(100);
+
+                entity.Property(u => u.FirstName)
+                    .HasMaxLength(50);
+
+                entity.Property(u => u.LastName)
+                    .HasMaxLength(50);
+
+                entity.Property(u => u.PhoneNumber)
+                    .HasMaxLength(20);
+
+                entity.Property(u => u.RegistrationDate)
+                    .HasDefaultValueSql("GETUTCDATE()");
             });
 
             // Конфигурация Course
             modelBuilder.Entity<Course>(entity =>
             {
-                entity.Property(c => c.Title).IsRequired().HasMaxLength(200);
-                entity.Property(c => c.Link).HasMaxLength(500);
-                entity.Property(c => c.Description).HasMaxLength(2000);
-                entity.Property(c => c.Language).HasMaxLength(50);
-                entity.Property(c => c.StartDate).HasColumnType("date");
-                entity.Property(c => c.EndDate).HasColumnType("date");
+                entity.Property(c => c.Title)
+                    .IsRequired()
+                    .HasMaxLength(200);
+
+                entity.Property(c => c.Link)
+                    .HasMaxLength(500);
+
+                entity.Property(c => c.Description)
+                    .HasMaxLength(2000);
+
+                entity.Property(c => c.Language)
+                    .HasMaxLength(50);
+
+                entity.Property(c => c.StartDate)
+                    .HasColumnType("date");
+
+                entity.Property(c => c.EndDate)
+                    .HasColumnType("date");
+
+                entity.Property(c => c.Price)
+                    .HasColumnType("decimal(18,2)");
+
+                entity.Property(c => c.Reviews)
+                    .HasColumnType("decimal(3,1)");
             });
 
-            // Настройка связи многие-ко-многим
+            // Конфигурация Discipline
+            modelBuilder.Entity<Discipline>(entity =>
+            {
+                entity.Property(d => d.Title)
+                    .IsRequired()
+                    .HasMaxLength(200);
+
+                entity.Property(d => d.StartDate)
+                    .HasColumnType("date");
+
+                entity.Property(d => d.EndDate)
+                    .HasColumnType("date");
+            });
+
+            // Связь User-Course (многие-ко-многим)
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Courses)
                 .WithMany(c => c.Users)
                 .UsingEntity(j => j.ToTable("UserCourses"));
+
+            // Связь Course-Discipline (многие-ко-многим)
+            modelBuilder.Entity<Course>()
+                .HasMany(c => c.Disciplines)
+                .WithMany(d => d.Courses)
+                .UsingEntity(j => j.ToTable("CourseDisciplines"));
         }
     }
 }

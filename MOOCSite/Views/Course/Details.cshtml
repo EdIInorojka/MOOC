@@ -10,10 +10,23 @@
         <div class="card-body">
             <h1 class="card-title">@Model.Title</h1>
 
+
             <div class="row mt-4">
                 <div class="col-md-8">
                     <h4>Описание курса</h4>
                     <p class="lead">@Model.Description</p>
+
+                    <div class="col-md-12">
+                        <h4>Закрываемые дисциплины</h4>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var discipline in Model.Disciplines)
+                            {
+                                <span class="badge bg-primary">
+                                    @discipline.Title (@discipline.Credits кредитов)
+                                </span>
+                            }
+                        </div>
+                    </div>
 
                     @if (!string.IsNullOrEmpty(Model.Link))
                     {

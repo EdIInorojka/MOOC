@@ -43,5 +43,7 @@ namespace MOOCAPI.Models
         public float Reviews { get; set; }
 
         public virtual ICollection<User> Users { get; set; } = new List<User>();
+
+        public virtual ICollection<Discipline> Disciplines { get; set; } = new List<Discipline>();
     }
 }

@@ -16,11 +16,21 @@ namespace MOOCSite.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var client = _httpClientFactory.CreateClient("MOOCApi");
-            var response = await client.GetAsync($"api/Courses/{id}");
+            var response = await client.GetAsync($"api/Courses/{id}?includeDisciplines=true");
 
             if (response.IsSuccessStatusCode)
             {
                 var course = await response.Content.ReadFromJsonAsync<Course>();
+
+                // Загружаем дисциплины, если они не были включены в ответ
+                if (course.Disciplines == null || !course.Disciplines.Any())
+                {
+                    var disciplinesResponse = await client.GetAsync($"api/Courses/{id}/disciplines");
+                    if (disciplinesResponse.IsSuccessStatusCode)
+                    {
+                        course.Disciplines = await disciplinesResponse.Content.ReadFromJsonAsync<List<Discipline>>();
+                    }
+                }
 
                 if (User.Identity.IsAuthenticated)
                 {

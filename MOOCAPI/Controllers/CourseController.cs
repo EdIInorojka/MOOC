@@ -139,6 +139,52 @@ namespace MOOCAPI.Controllers
             return _context.Courses.Any(e => e.Id == id);
         }
 
+        [HttpGet("{id}/disciplines")]
+        public async Task<ActionResult<IEnumerable<Discipline>>> GetCourseDisciplines(int id)
+        {
+            var course = await _context.Courses
+                .Include(c => c.Disciplines)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (course == null) return NotFound();
+            return Ok(course.Disciplines);
+        }
+
+        [HttpPost("{id}/disciplines/{disciplineId}")]
+        public async Task<IActionResult> AddDisciplineToCourse(int id, int disciplineId)
+        {
+            var course = await _context.Courses
+                .Include(c => c.Disciplines)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            var discipline = await _context.Disciplines.FindAsync(disciplineId);
+
+            if (course == null || discipline == null) return NotFound();
+
+            course.Disciplines.Add(discipline);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id}/disciplines/{disciplineId}")]
+        public async Task<IActionResult> RemoveDisciplineFromCourse(int id, int disciplineId)
+        {
+            var course = await _context.Courses
+                .Include(c => c.Disciplines)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (course == null) return NotFound();
+
+            var discipline = course.Disciplines.FirstOrDefault(d => d.Id == disciplineId);
+            if (discipline == null) return NotFound();
+
+            course.Disciplines.Remove(discipline);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
         [HttpGet("Filter")]
         public async Task<ActionResult<IEnumerable<Course>>> FilterCourses(
             string search = "",
@@ -149,25 +195,30 @@ namespace MOOCAPI.Controllers
             string language = null,
             int? minPrice = null,
             int? maxPrice = null,
-            float? minRating = null)
+            float? minRating = null,
+            int? disciplineId = null)
         {
-            IQueryable<Course> query = _context.Courses;
+            IQueryable<Course> query = _context.Courses
+                .Include(c => c.Disciplines)
+                .Include(c => c.Users)
+                .AsQueryable();
 
-            // Поиск
+            // Фильтрация по дисциплине (исправленная версия)
+
+            // Остальные фильтры
             if (!string.IsNullOrEmpty(search))
             {
-                query = query.Where(c => c.Title.Contains(search));
+                query = query.Where(c => c.Title.Contains(search) || c.Description.Contains(search));
             }
 
-            // Фильтрация
             if (isSelfPassed.HasValue)
             {
-                query = query.Where(c => c.IsSelfPassed == isSelfPassed);
+                query = query.Where(c => c.IsSelfPassed == isSelfPassed.Value);
             }
 
             if (certificated.HasValue)
             {
-                query = query.Where(c => c.Certificated == certificated);
+                query = query.Where(c => c.Certificated == certificated.Value);
             }
 
             if (!string.IsNullOrEmpty(language))
@@ -177,17 +228,22 @@ namespace MOOCAPI.Controllers
 
             if (minPrice.HasValue)
             {
-                query = query.Where(c => c.Price >= minPrice);
+                query = query.Where(c => c.Price >= minPrice.Value);
             }
 
             if (maxPrice.HasValue)
             {
-                query = query.Where(c => c.Price <= maxPrice);
+                query = query.Where(c => c.Price <= maxPrice.Value);
             }
 
             if (minRating.HasValue)
             {
-                query = query.Where(c => c.Reviews >= minRating);
+                query = query.Where(c => c.Reviews >= minRating.Value);
+            }
+
+            if (disciplineId.HasValue)
+            {
+                query = query.Where(c => c.Disciplines.Any(d => d.Id == disciplineId.Value));
             }
 
             // Сортировка
@@ -196,14 +252,14 @@ namespace MOOCAPI.Controllers
                 case "title":
                     query = sortOrder == "asc" ? query.OrderBy(c => c.Title) : query.OrderByDescending(c => c.Title);
                     break;
-                case "startdate":
-                    query = sortOrder == "asc" ? query.OrderBy(c => c.StartDate) : query.OrderByDescending(c => c.StartDate);
-                    break;
                 case "price":
                     query = sortOrder == "asc" ? query.OrderBy(c => c.Price) : query.OrderByDescending(c => c.Price);
                     break;
                 case "reviews":
                     query = sortOrder == "asc" ? query.OrderBy(c => c.Reviews) : query.OrderByDescending(c => c.Reviews);
+                    break;
+                case "startdate":
+                    query = sortOrder == "asc" ? query.OrderBy(c => c.StartDate) : query.OrderByDescending(c => c.StartDate);
                     break;
                 default:
                     query = query.OrderBy(c => c.Title);
@@ -211,6 +267,18 @@ namespace MOOCAPI.Controllers
             }
 
             return await query.ToListAsync();
+        }
+
+        [HttpGet("ByDiscipline/{disciplineId}")]
+        public async Task<ActionResult<IEnumerable<Course>>> GetCoursesByDiscipline(int disciplineId)
+        {
+            var discipline = await _context.Disciplines
+                .Include(d => d.Courses)
+                .FirstOrDefaultAsync(d => d.Id == disciplineId);
+
+            if (discipline == null) return NotFound();
+
+            return Ok(discipline.Courses);
         }
     }
 }
