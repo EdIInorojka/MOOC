@@ -45,5 +45,10 @@ namespace MOOCAPI.Models
         public virtual ICollection<User> Users { get; set; } = new List<User>();
 
         public virtual ICollection<Discipline> Disciplines { get; set; } = new List<Discipline>();
+
+        public int? UniversityId { get; set; }  // Связь с University (многие-к-одному)
+        public virtual University? University { get; set; }
+
+        public virtual ICollection<Lecturer> Lecturers { get; set; } = new List<Lecturer>();
     }
 }

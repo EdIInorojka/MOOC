@@ -1,0 +1,60 @@
+﻿@using MOOCSite.Models
+@model List<Lecturer>
+@{
+    ViewData["Title"] = "Управление лекторами";
+}
+
+<div class="container mt-4">
+    <h1>@ViewData["Title"]</h1>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger">@ViewBag.Error</div>
+    }
+
+    <div class="mb-3">
+        <a asp-action="CreateLecturer" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Добавить лектора
+        </a>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>ФИО</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var lecturer in Model)
+            {
+                <tr>
+                    <td>@lecturer.Id</td>
+                    <td>@lecturer.LastName @lecturer.FirstName</td>
+                    <td>
+                        <a asp-action="EditLecturer" asp-route-id="@lecturer.Id"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Изменить
+                        </a>
+                        <form asp-action="DeleteLecturer" asp-route-id="@lecturer.Id"
+                              method="post" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                    onclick="return confirm('Удалить этого лектора?')">
+                                <i class="bi bi-trash"></i> Удалить
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

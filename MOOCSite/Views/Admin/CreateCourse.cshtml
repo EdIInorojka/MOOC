@@ -1,0 +1,184 @@
+﻿@using MOOCSite.ViewModels
+@model CourseCreateViewModel
+@{
+    ViewData["Title"] = "Добавление курса";
+}
+
+<div class="container mt-4">
+    <h1>@ViewData["Title"]</h1>
+
+    <form asp-action="CreateCourse" method="post" id="courseForm">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <!-- Основная информация -->
+                <div class="card mb-4">
+                    <div class="card-header">Основная информация</div>
+                    <div class="card-body">
+                        <div class="form-group mb-3">
+                            <label asp-for="Title" class="form-label"></label>
+                            <input asp-for="Title" class="form-control" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Description" class="form-label"></label>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Link" class="form-label"></label>
+                            <input asp-for="Link" class="form-control" />
+                            <span asp-validation-for="Link" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Даты и стоимость -->
+                <div class="card mb-4">
+                    <div class="card-header">Даты и стоимость</div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="StartDate" class="form-label"></label>
+                                    <input asp-for="StartDate" type="date" class="form-control" />
+                                    <span asp-validation-for="StartDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="EndDate" class="form-label"></label>
+                                    <input asp-for="EndDate" type="date" class="form-control" />
+                                    <span asp-validation-for="EndDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Price" class="form-label"></label>
+                            <input asp-for="Price" class="form-control" />
+                            <span asp-validation-for="Price" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <!-- Настройки курса -->
+                <div class="card mb-4">
+                    <div class="card-header">Настройки курса</div>
+                    <div class="card-body">
+                        <div class="form-group mb-3">
+                            <label asp-for="UniversityId" class="form-label"></label>
+                            <select asp-for="UniversityId" class="form-select"
+                                    asp-items="@(new SelectList(Model.Universities ?? new(), "Id", "Name"))">
+                                <option value="">-- Выберите университет --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="SelectedLecturerIds" class="form-label"></label>
+                            <select asp-for="SelectedLecturerIds" class="form-select" multiple
+                                    asp-items="@(new SelectList(Model.Lecturers ?? new(), "Id", "FullName"))">
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="SelectedDisciplineIds" class="form-label"></label>
+                            <select asp-for="SelectedDisciplineIds" class="form-select" multiple
+                                    asp-items="@(new SelectList(Model.Disciplines ?? new(), "Id", "Title"))">
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Language" class="form-label"></label>
+                                    <input asp-for="Language" class="form-control" />
+                                    <span asp-validation-for="Language" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Credits" class="form-label"></label>
+                                    <input asp-for="Credits" class="form-control" />
+                                    <span asp-validation-for="Credits" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3 form-check">
+                            <input asp-for="IsSelfPassed" class="form-check-input" />
+                            <label asp-for="IsSelfPassed" class="form-check-label"></label>
+                        </div>
+
+                        <div class="form-group mb-3 form-check">
+                            <input asp-for="Certificated" class="form-check-input" />
+                            <label asp-for="Certificated" class="form-check-label"></label>
+                        </div>
+
+                        <div class="form-group mb-3 form-check">
+                            <input asp-for="IsCertificatePaid" class="form-check-input" />
+                            <label asp-for="IsCertificatePaid" class="form-check-label"></label>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Reviews" class="form-label"></label>
+                            <input asp-for="Reviews" class="form-control" />
+                            <span asp-validation-for="Reviews" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group mt-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Сохранить курс
+            </button>
+            <a asp-action="Courses" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Отмена
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Инициализация Select2 для множественного выбора
+            $('select[multiple]').select2({
+                placeholder: "Выберите значения",
+                allowClear: true
+            });
+
+            // Инициализация обычного select
+            $('select:not([multiple])').select2({
+                placeholder: "Выберите значение",
+                allowClear: true
+            });
+        });
+    </script>
+
+    <style>
+        .select2-container--default .select2-selection--multiple,
+        .select2-container--default .select2-selection--single {
+            min-height: 38px;
+            border: 1px solid #ced4da;
+        }
+
+            .select2-container--default .select2-selection--multiple .select2-selection__choice {
+                background-color: #e9ecef;
+                border: 1px solid #ced4da;
+            }
+    </style>
+}

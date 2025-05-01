@@ -196,10 +196,16 @@ namespace MOOCAPI.Controllers
             int? minPrice = null,
             int? maxPrice = null,
             float? minRating = null,
-            int? disciplineId = null)
+            int? disciplineId = null,
+            int? universityId = null,
+            int? lecturerId = null,
+            string universityName = null,
+            string lecturerName = null)
         {
             IQueryable<Course> query = _context.Courses
                 .Include(c => c.Disciplines)
+                .Include(c => c.University)
+                .Include(c => c.Lecturers)
                 .Include(c => c.Users)
                 .AsQueryable();
 
@@ -209,6 +215,25 @@ namespace MOOCAPI.Controllers
             if (!string.IsNullOrEmpty(search))
             {
                 query = query.Where(c => c.Title.Contains(search) || c.Description.Contains(search));
+            }
+
+            if (universityId.HasValue)
+            {
+                query = query.Where(c => c.UniversityId == universityId.Value);
+            }
+            if (!string.IsNullOrEmpty(universityName))
+            {
+                query = query.Where(c => c.University != null && c.University.Name.Contains(universityName));
+            }
+
+            if (lecturerId.HasValue)
+            {
+                query = query.Where(c => c.Lecturers.Any(l => l.Id == lecturerId.Value));
+            }
+            if (!string.IsNullOrEmpty(lecturerName))
+            {
+                query = query.Where(c => c.Lecturers.Any(l =>
+                    (l.FirstName + " " + l.LastName).Contains(lecturerName)));
             }
 
             if (isSelfPassed.HasValue)
@@ -279,6 +304,19 @@ namespace MOOCAPI.Controllers
             if (discipline == null) return NotFound();
 
             return Ok(discipline.Courses);
+        }
+
+        [HttpPost("{courseId}/lecturers/{lecturerId}")]
+        public async Task<IActionResult> AddLecturerToCourse(int courseId, int lecturerId)
+        {
+            var course = await _context.Courses.Include(c => c.Lecturers).FirstOrDefaultAsync(c => c.Id == courseId);
+            var lecturer = await _context.Lecturers.FindAsync(lecturerId);
+
+            if (course == null || lecturer == null) return NotFound();
+
+            course.Lecturers.Add(lecturer);
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
     }
 }

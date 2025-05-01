@@ -5,5 +5,7 @@ namespace MOOCSite.ViewModels
     {
         public Course Course { get; set; }
         public bool IsEnrolled { get; set; }
+        public University University { get; set; }
+        public List<Lecturer> Lecturers { get; set; } = new List<Lecturer>();
     }
 }

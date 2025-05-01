@@ -116,3 +116,28 @@ th a {
     gap: 5px;
     margin-top: 10px;
 }
+
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.btn-group .btn {
+    margin-right: 5px;
+}
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}

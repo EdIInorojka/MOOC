@@ -63,7 +63,8 @@ public class AccountController : Controller
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.Login),
-            new Claim(ClaimTypes.Email, user.Email ?? string.Empty)
+            new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+            new Claim("IsAdmin", user.Login == "admin" ? "true" : "false")
         };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

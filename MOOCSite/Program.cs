@@ -35,9 +35,21 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 builder.Services.AddAuthorization(options =>
 {
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("Admin"));
     options.AddPolicy("RequireAuthenticated", policy =>
     {
         policy.RequireAuthenticatedUser();
+    });
+});
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
     });
 });
 
@@ -48,6 +60,8 @@ builder.Services.AddControllers()
     });
 
 var app = builder.Build();
+
+app.UseCors("AllowAll");
 
 // Конфигурация конвейера HTTP
 if (!app.Environment.IsDevelopment())
@@ -64,6 +78,11 @@ app.UseAuthentication();  // Добавляем аутентификацию
 app.UseAuthorization();
 
 // Маршрутизация
+
+app.MapControllerRoute(
+    name: "admin",
+    pattern: "admin/{action=Dashboard}/{id?}",
+    defaults: new { controller = "Admin" });
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

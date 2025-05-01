@@ -1,0 +1,75 @@
+﻿@using MOOCSite.Models
+@model Lecturer
+
+@{
+    ViewData["Title"] = "Редактирование лектора";
+}
+
+<div class="container mt-4">
+    <h1>@ViewData["Title"]</h1>
+
+    <form method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="Id" />
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label asp-for="LastName" class="control-label">Фамилия</label>
+                    <input asp-for="LastName" class="form-control" />
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label asp-for="FirstName" class="control-label">Имя</label>
+                    <input asp-for="FirstName" class="form-control" />
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group mt-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Сохранить изменения
+            </button>
+            <a asp-action="Lecturers" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Назад к списку
+            </a>
+        </div>
+    </form>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Курсы этого лектора</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Courses != null && Model.Courses.Any())
+            {
+                <ul class="list-group">
+                    @foreach (var course in Model.Courses)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <a asp-controller="Admin" asp-action="EditCourse" asp-route-id="@course.Id">
+                                @course.Title
+                            </a>
+                            <span class="badge bg-primary rounded-pill">
+                                @course.University?.Name
+                            </span>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="text-muted">Этот лектор не ведет ни одного курса</p>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

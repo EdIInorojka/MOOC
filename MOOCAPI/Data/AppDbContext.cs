@@ -12,6 +12,8 @@ namespace MOOCAPI.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Course> Courses { get; set; }
         public DbSet<Discipline> Disciplines { get; set; }
+        public DbSet<University> Universities { get; set; }
+        public DbSet<Lecturer> Lecturers { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -107,6 +109,18 @@ namespace MOOCAPI.Data
                 .HasMany(c => c.Disciplines)
                 .WithMany(d => d.Courses)
                 .UsingEntity(j => j.ToTable("CourseDisciplines"));
+            // Связь Course-University (многие-к-одному)
+            modelBuilder.Entity<Course>()
+                .HasOne(c => c.University)
+                .WithMany(u => u.Courses)
+                .HasForeignKey(c => c.UniversityId)
+                .OnDelete(DeleteBehavior.SetNull);  // Если университет удалён, курс остаётся
+
+            // Связь Course-Lecturer (многие-ко-многим)
+            modelBuilder.Entity<Course>()
+                .HasMany(c => c.Lecturers)
+                .WithMany(l => l.Courses)
+                .UsingEntity(j => j.ToTable("CourseLecturers"));
         }
     }
 }

@@ -14,6 +14,8 @@
     var minPriceFilter = Context.Request.Query["minPrice"];
     var maxPriceFilter = Context.Request.Query["maxPrice"];
     var minRatingFilter = Context.Request.Query["minRating"];
+    var universities = ViewBag.Universities as List<University> ?? new List<University>();
+    var lecturers = ViewBag.Lecturers as List<Lecturer> ?? new List<Lecturer>();
 }
 
 <div class="container mt-4">
@@ -39,23 +41,27 @@
                     </select>
                 </div>
 
-                <!-- Фильтр по сертификату -->
                 <div class="col-md-3">
-                    <select name="certificated" class="form-select">
-                        <option value="">Все курсы</option>
-                        <option value="true" selected="@(certificatedFilter == "true")">С сертификатом</option>
-                        <option value="false" selected="@(certificatedFilter == "false")">Без сертификата</option>
+                    <select name="universityId" class="form-select">
+                        <option value="">Все университеты</option>
+                        @foreach (var university in universities)
+                        {
+                            <option value="@university.Id"
+                                    selected="@(Context.Request.Query["universityId"] == university.Id.ToString())">
+                                @university.Name
+                            </option>
+                        }
                     </select>
                 </div>
 
                 <div class="col-md-3">
-                    <select name="disciplineId" class="form-select">
-                        <option value="">Все дисциплины</option>
-                        @foreach (var discipline in disciplines)
+                    <select name="lecturerId" class="form-select">
+                        <option value="">Все лекторы</option>
+                        @foreach (var lecturer in lecturers)
                         {
-                            <option value="@discipline.Id"
-                                    selected="@(Context.Request.Query["disciplineId"].ToString() == discipline.Id.ToString())">
-                                @discipline.Title
+                            <option value="@lecturer.Id"
+                                    selected="@(Context.Request.Query["lecturerId"] == lecturer.Id.ToString())">
+                                @lecturer.LastName @lecturer.FirstName
                             </option>
                         }
                     </select>
@@ -205,6 +211,25 @@
                                         <span class="badge @(item.Course.IsSelfPassed ? "bg-success" : "bg-warning text-dark")">
                                             @(item.Course.IsSelfPassed ? "Самостоятельное" : "С преподавателем")
                                         </span>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        @if (item.Course.University != null)
+                                        {
+                                            <span class="badge bg-primary">
+                                                <i class="bi bi-building"></i> @item.Course.University.Name
+                                            </span>
+                                        }
+                                    </div>
+
+                                    <div class="mb-2">
+                                        @if (item.Course.Lecturers != null && item.Course.Lecturers.Any())
+                                        {
+                                            <span class="badge bg-info text-dark">
+                                                <i class="bi bi-person-badge"></i>
+                                                @string.Join(", ", item.Course.Lecturers.Select(l => $"{l.LastName} {l.FirstName}"))
+                                            </span>
+                                        }
                                     </div>
 
                                     <div class="mt-2">

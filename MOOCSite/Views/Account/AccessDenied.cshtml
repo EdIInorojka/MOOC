@@ -1,0 +1,13 @@
+﻿@{
+    ViewData["Title"] = "Доступ запрещен";
+    Layout = "_Layout";
+}
+
+<div class="container mt-5">
+    <div class="alert alert-danger">
+        <h2>@ViewData["Title"]</h2>
+        <p>У вас нет прав для доступа к этой странице.</p>
+        <p>Текущий пользователь: @User.Identity?.Name</p>
+        <a href="/" class="btn btn-primary">На главную</a>
+    </div>
+</div>

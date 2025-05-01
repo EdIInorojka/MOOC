@@ -10,6 +10,31 @@
         <div class="card-body">
             <h1 class="card-title">@Model.Title</h1>
 
+            <div class="row mb-3">
+                @if (Model.University != null)
+                {
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-building me-2"></i>
+                            <span class="fw-bold">Университет:</span>
+                            <span class="ms-2">@Model.University.Name</span>
+                        </div>
+                    </div>
+                }
+
+                @if (Model.Lecturers != null && Model.Lecturers.Any())
+                {
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-person-video3 me-2"></i>
+                            <span class="fw-bold">Лекторы:</span>
+                            <span class="ms-2">
+                                @string.Join(", ", Model.Lecturers.Select(l => $"{l.FirstName} {l.LastName}"))
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
 
             <div class="row mt-4">
                 <div class="col-md-8">
@@ -17,7 +42,7 @@
                     <p class="lead">@Model.Description</p>
 
                     <div class="col-md-12">
-                        <h4>Закрываемые дисциплины</h4>
+                        <h4>Покрываемые дисциплины</h4>
                         <div class="d-flex flex-wrap gap-2">
                             @foreach (var discipline in Model.Disciplines)
                             {

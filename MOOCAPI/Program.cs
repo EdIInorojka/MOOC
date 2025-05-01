@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MOOCAPI.Data;
+using MOOCAPI.Models;
 using System.Linq.Dynamic.Core;
 using System.Text.Json.Serialization;
 
@@ -41,7 +43,20 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    dbContext.Database.Migrate();
-}
+    if (!dbContext.Users.Any(u => u.Login == "admin"))
+    {
+        var adminUser = new User
+        {
+            Login = "admin",
+            Password = "admin123", // В реальном проекте используйте хеширование!
+            Email = "admin@example.com",
+            FirstName = "Admin",
+            LastName = "Admin",
+            IsActive = true
+        };
 
+        dbContext.Users.Add(adminUser);
+        await dbContext.SaveChangesAsync();
+    }
+}
 app.Run();
